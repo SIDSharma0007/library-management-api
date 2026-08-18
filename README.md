@@ -59,7 +59,7 @@ This application strictly adheres to the **Controller-Service-Repository** desig
 2. Double-click the index.html file to open it in your web browser.
 3. Note: Ensure the backend is running first so the frontend can successfully fetch the data.
 
-### 🔮 Future Improvements
+## 🔮 Future Improvements
 1. Implement a PostgreSQL database for permanent data persistence.
 2. Add a PUT endpoint to handle returning borrowed books.
 3. Integrate Spring Security for user authentication and authorization.
