@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Library</title>
+    <style>
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            background-color: #f3f4f6; 
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #111827; }
+        .book-card { 
+            background-color: white; 
+            padding: 1.5rem; 
+            margin-bottom: 1rem; 
+            border-radius: 0.5rem; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        .available { background-color: #d1fae5; color: #065f46; }
+        .borrowed { background-color: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+    <h1>📚 Library Dashboard</h1>
+    <div id="book-container">
+        <p>Loading books from the server...</p>
+    </div>
+
+    <script>
+    // Pretend User #1 is logged in
+    const CURRENT_USER_ID = 1;
+
+    // 1. Function to load books (We wrap our previous code in a function so we can reuse it)
+    function loadBooks() {
+        fetch('http://localhost:8080/api/books')
+            .then(response => response.json())
+            .then(books => {
+                const container = document.getElementById('book-container');
+                container.innerHTML = ''; 
+
+                if(books.length === 0) {
+                    container.innerHTML = '<p>No books in the database yet!</p>';
+                    return;
+                }
+
+                books.forEach(book => {
+                    const statusClass = book.available ? 'available' : 'borrowed';
+                    const statusText = book.available ? 'Available' : 'Borrowed';
+                    
+                    // Only show the button if the book is available
+                    const buttonHTML = book.available 
+                        ? `<button onclick="borrowBook(${book.id})" style="margin-top: 10px; padding: 5px 10px; cursor: pointer;">Borrow Book</button>`
+                        : `<p style="color: red; font-size: 14px;">Currently Unavailable</p>`;
+
+                    const bookDiv = document.createElement('div');
+                    bookDiv.className = 'book-card';
+                    bookDiv.innerHTML = `
+                        <h3 style="margin-top: 0;">${book.title}</h3>
+                        <p style="color: #4b5563;">Author: ${book.author}</p>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                        <br>
+                        ${buttonHTML}
+                    `;
+                    container.appendChild(bookDiv);
+                });
+            })
+            .catch(error => console.error('Error fetching books:', error));
+    }
+
+    // 2. The Borrow Function (Triggered by the button)
+    function borrowBook(bookId) {
+        const requestData = {
+            bookId: bookId,
+            userId: CURRENT_USER_ID
+        };
+
+        // Call the Waiter!
+        fetch('http://localhost:8080/api/borrow', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        })
+        .then(response => response.text()) // We expect a plain String back from your Service
+        .then(message => {
+            alert(message); // Pop up the success/error message
+            loadBooks(); // Immediately refresh the page to show the book is now red/unavailable!
+        })
+        .catch(error => console.error('Error borrowing book:', error));
+    }
+
+    // 3. Run loadBooks immediately when the page opens
+    loadBooks();
+</script>
+</body>
+</html>
